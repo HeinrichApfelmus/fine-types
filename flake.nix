@@ -10,6 +10,7 @@
       url = "github:cardano-scaling/haskell-language-server?ref=2.6-patched";
       flake = false;
     };
+    agda-tools.url = "github:HeinrichApfelmus/agda-notes?dir=nix/agda-hs-tools";
   };
 
   outputs = inputs:
@@ -52,13 +53,21 @@
             gitAndTools.git
             haskellPackages.ghcid
             haskellPackages.hlint
-
             (haskell-nix.tool "ghc964" "haskell-language-server" ({pkgs, ...}: rec {
-            # Use the github source of HLS that is tested with haskell.nix CI
-            src = inputs.hls;
+              # Use the github source of HLS that is tested with haskell.nix CI
+              src = inputs.hls;
             }))
+
+            inputs.agda-tools.packages.${system}.agda
+            inputs.agda-tools.packages.${system}.agda2hs
           ];
+
+          shell.shellHook = ''
+            export AGDA_DIR=${inputs.agda-tools.packages.${system}.agda-dir.outPath}
+          '';
+
           shell.withHoogle = true;
+
         }).flake (
           # we also want cross compilation to windows.
           nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
